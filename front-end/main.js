@@ -1,8 +1,9 @@
 const readline = require('readline');
 const fs = require('fs');
+const { dirname } = require('path');
 
 
-const todos = [];
+let todos = [];
 const interface = readline.createInterface({input: process.stdin, output: process.stdout})
 const menu = `
 Your options are:
@@ -16,40 +17,40 @@ Your options are:
 `
 
 const loadTodos = function() {
-  todos.splice(0);
-  const file = fs.readFileSync('./todos.csv', 'utf8');
-  const rows = file.split('\n');
-  for (const rowString of rows) {
-    const todo = rowString.split(',')
-    todos.push(todo);
-  }
+  const file = fs.readFileSync(__dirname + '/../back-end/todos.json', 'utf8');
+  const data = JSON.parse(file);
+  todos = data.todos;
+  
+
+ 
+  console.log('Output', data.todos.length, todos.length);
 }
 
-const saveTodos = function() {
-  const rowStrings = [];
-  for (const todo of todos) {
-    rowStrings.push(todo[0] + ',' + todo[1]);
-  }
 
-  const newContents = rowStrings.join('\n');
-  fs.writeFileSync('./todos.csv', newContents);
+const saveTodos = function() {
+  
+
+  const newContents = {todos: todos}
+  const dataChange = JSON.stringify(newContents)
+  fs.writeFileSync(__dirname + '/../back-end/todos.json', dataChange);
+
 }
 
 const displayTodos = function(shouldPrintNumber) {
   console.log('\nHere are your current todos:\n')
   for (let i = 0; i < todos.length; i++) {
     const todo = todos[i];
-    const text = todo[0];
-    const isComplete = todo[1];
-    const priority = todo[2];
+    const text = todo.text;
+    const isComplete = todo.isComplete;
+    const priority = todo.priority;
     const num = i + 1;
     let listSymbol = '*';
     let mark = '✖';
     if (shouldPrintNumber) {
       listSymbol = num + '.';
     }
-
-    if (isComplete === 'complete') {
+    // console.log("Output", isComplete)
+    if (isComplete === true) {
       mark = '✅';
     }
 
@@ -61,7 +62,11 @@ const displayTodos = function(shouldPrintNumber) {
 }
 
 const add = function(text) {
-  const todo = [text, 'uncomplete'];
+  const todo = {
+    "text": text,
+    "isComplete": false,
+    "priority": 1
+  };
   todos.push(todo);
   saveTodos();
   displayTodos(false);
@@ -76,10 +81,10 @@ const remove = function(num) {
 }
 
 const complete = function(num) {
-  [['thing1', 'complete'], ['thing2', 'uncomplete']]
+  
   for (let i = 0; i < todos.length; i++) {
     if (i + 1 === Number(num)) {
-      todos[i][1] = 'complete';
+      todos[i].isComplete = true;
     }
   }
 
@@ -91,7 +96,7 @@ const complete = function(num) {
 const uncomplete = function(num) {
   for (let i = 0; i < todos.length; i++) {
     if (i + 1 === Number(num)) {
-      todos[i][1] = 'uncomplete';
+      todos[i].isComplete = false;
     }
   }
 
